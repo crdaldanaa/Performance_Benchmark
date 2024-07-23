@@ -77,6 +77,9 @@ git clone git@github.com:crdaldanaa/Performance_Benchmark.git
 # Navegue al directorio donde se alojo el repositorio
 cd proyecto
 
+# Activar el ambiente virtual (env)
+source .\env\bin\activate
+
 # Instale las dependencias
 pip install -r requirements.txt
 ```
