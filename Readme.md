@@ -29,6 +29,7 @@ Las definiciones descritas a continuación provienen de la metodología VM0047 d
 * **Selección de Parcelas**: Selecciona un subconjunto n (*definido por el usuario*) aleatorio de parcelas de proyecto para el análisis.
 * **Cálculo de Distancias y Asignación de Parcelas**: Cálcula la [distancia de Mahalanobis](https://es.mathworks.com/help/stats/mahal.html) entre cada posible combinación de parcelas de control y de proyecto.
 * **Asignación de Parcelas**: Para la asignación de las k (*definido por el usuario*) control plots a cada project plot y emplea un modelo de minimización tal que:
+
 $$\text{min} \sum_{i=1}^{n} \sum_{j=1}^{m} \sqrt{(P_i - C_j)^T S^{-1} (P_i - C_j)}$$
 
 Sujeto a las siguientes restricciones:
