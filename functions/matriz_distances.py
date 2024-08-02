@@ -4,46 +4,76 @@ import numpy as np
 from pulp import LpMinimize, LpProblem, LpVariable, lpSum, LpBinary
 
 
-def arrange_plots(df_project, df_control, str_covars, id_name, k_neighbors):
-    def distance_mahalanobis_matrix(df_project, df_control, str_covars, id_name):
-        cov_matrix = np.cov(
-            df_project[str_covars].values, rowvar=False)
+def distance_mahalanobis_matrix(df_project, df_control, str_covars, id_name):
+    cov_matrix = np.cov(
+        df_project[str_covars].values, rowvar=False)
 
-        # Añadir una pequeña constante a la diagonal para hacer la matriz invertible
-        regularization_constant = 1e-10
-        cov_matrix += np.eye(cov_matrix.shape[0]) * regularization_constant
+    # Añadir una pequeña constante a la diagonal para hacer la matriz invertible
+    regularization_constant = 1e-10
+    cov_matrix += np.eye(cov_matrix.shape[0]) * regularization_constant
 
-        inv_cov_matrix = np.linalg.inv(cov_matrix)
+    inv_cov_matrix = np.linalg.inv(cov_matrix)
 
-        # Función para calcular la distancia de Mahalanobis
-        def mahalanobis_distance(x, y, inv_cov_matrix):
-            return mahalanobis(x, y, inv_cov_matrix)
+    # Función para calcular la distancia de Mahalanobis
+    def mahalanobis_distance(x, y, inv_cov_matrix):
+        return mahalanobis(x, y, inv_cov_matrix)
 
-        # Crear un DataFrame vacío para almacenar las distancias
-        distances_df = pd.DataFrame(df_project[id_name])
+    # Crear un DataFrame vacío para almacenar las distancias
+    distances_df = pd.DataFrame(df_project[id_name])
+    # print(f'Esta es la matriz de distancias inicial\n{distances_df}')
 
-        for i, control_plot in df_control.iterrows():
-            control_id = control_plot[id_name]
-            distances = []
-            for j, project_plot in df_project.iterrows():
-                distance = mahalanobis_distance(
-                    project_plot[str_covars].values,
-                    control_plot[str_covars].values,
-                    inv_cov_matrix
-                )
-                distances.append(distance)
+    # Inicializar una lista para almacenar las Series de distancias
+    new_cols = []
 
-            # Agregar las distancias al DataFrame con el nombre de la columna correspondiente al id de control_plot
-            distances_df[control_id] = distances
-        return distances_df
+    for i, control_plot in df_control.iterrows():
+        control_id = control_plot[id_name]
+        distances = []
+        for j, project_plot in df_project.iterrows():
+            distance = mahalanobis_distance(
+                project_plot[str_covars].values,
+                control_plot[str_covars].values,
+                inv_cov_matrix
+            )
 
-    matrix_distances = distance_mahalanobis_matrix(
-        df_project, df_control, str_covars, id_name)
+            # print(f'Datos de la matriz {distances}')
+            distances.append(distance)
+            # print(f'Calculando la distancia de Mahalanobis de la Project Plot {control_plot} a la Control Plot {j}')
+
+        """
+        # Crear una Serie con las distancias y agregarla a la lista de nuevas columnas
+        distances_series = pd.Series(distances, name=control_id)
+        new_cols.append(distances_series)
+        """
+
+        temp_df = pd.DataFrame({control_id: distances})
+
+        # Usar pd.concat para agregar todas las nuevas columnas al DataFrame distances_df
+        distances_df = pd.concat([distances_df, temp_df], axis=1)
+
+        # Crear una Serie con las distancias y agregarla a la lista de nuevas columnas
+        distances_series = pd.Series(distances, name=control_id)
+        new_cols.append(distances_series)
+
+    # Crear el DataFrame final de distancias usando pd.concat
+    distances_df = pd.concat(new_cols, axis=1)
+
+    # print(distances_df)
+
+    """
+    # Opcional: agregar el índice del DataFrame del proyecto
+    distances_df.index = df_project[id_name]
+    """
+
+    return distances_df
+
+
+def arrange_plots(df_project, df_control, matrix_distances, id_name, k_neighbors):
 
     # print(f'Esta es la matriz de distancias (Mahalanobis) entre los dataframes Control Plots y Project Plots.\n{matrix_distances}\n')
 
     # Extraemos los IDs de los project plots y los control plots
     project_plot_ids = matrix_distances.iloc[:, 0].values
+    # print(f'Este es {project_plot_ids}')
     control_plot_ids = matrix_distances.columns[1:].values
 
     # Creamos el problema de minimización
@@ -108,21 +138,21 @@ def arrange_plots(df_project, df_control, str_covars, id_name, k_neighbors):
 
     # print(df_project)
 
-    return matrix_distances, assigned_plots, df_project
+    return assigned_plots, df_project
 
 
 if __name__ == '__main__':
     from cross_check_df import *
 
     df_project_plots = pd.DataFrame({
-        'ID': ['P1', 'P2', 'P3'],
+        'ID': [1, 2, 3],
         '2010': [4.1, 5.2, 5.0],
         '2015': [4.2, 5.3, 5.1],
         '2020': [4.5, 5.4, 5.3]
     })
 
     df_control_plots = pd.DataFrame({
-        'ID': ['C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9', 'C10'],
+        'ID': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
         '2010': [4.1, 5.2, 3.3, 3.5, 1.0, 8.5, 5.2, 7.5, 8.4, 6.1],
         '2020': [4.7, 5.4, 3.5, 1.6, 2.5, 6.6, 7.7, 8.2, 3.4, 2.5],
         '2015': [4.2, 5.3, 3.4, 2.1, 2.4, 2.5, 5.5, 6.6, 7.7, 4.1]
@@ -131,7 +161,10 @@ if __name__ == '__main__':
     response, df_control_plots, df_project_plots, strs_project, dict_project, id_name = check_df(
         df_project_plots, df_control_plots)
     print(strs_project)
-    matrix_distances, assigned_plots, df_project = arrange_plots(
-        df_project_plots, df_control_plots, strs_project, id_name, 1)
+    matrix_distances = distance_mahalanobis_matrix(
+        df_project_plots, df_control_plots, strs_project, id_name)
+
+    assigned_plots, df_project = arrange_plots(
+        df_project_plots, df_control_plots, matrix_distances, id_name, 4)
 
     print(assigned_plots)

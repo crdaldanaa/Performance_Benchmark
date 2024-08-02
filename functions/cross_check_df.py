@@ -128,6 +128,10 @@ def check_df(df_project, df_control):
         df_control['Type'] = "Control"
         df_project = no_null_data(df_project, name_df_project)
         df_project['Type'] = "Project"
+        df_control = df_control.astype(
+            {col: 'float32' for col in df_control.select_dtypes(include=['float64']).columns})
+        df_project = df_project.astype(
+            {col: 'float32' for col in df_project.select_dtypes(include=['float64']).columns})
 
         # print(df_project)
         # print(df_control)
@@ -155,4 +159,4 @@ if __name__ == '__main__':
     response, df_control, df_project, strs_project, dict_project, id_project = check_df(
         df_project, df_control)
 
-    print(dict_project)
+    print(df_control)

@@ -2,6 +2,7 @@ import pandas as pd
 from openpyxl import load_workbook
 from datetime import datetime
 from openpyxl.worksheet.table import Table, TableStyleInfo
+from numba import njit
 
 
 def save_df_excel(df, save_path, sheet_name):

@@ -132,6 +132,7 @@ def input_csv():
                     df_cargado = pd.read_csv(ruta, sep=sep)
                     # Guardar el DataFrame en el diccionario
                     dfs[name] = df_cargado
+                    # print(df_cargado)
                     break  # Salir del bucle si el archivo es válido
                 except Exception as e:
                     print(f"No se pudo leer el archivo '{ruta}'. Error: {e}")
@@ -142,11 +143,9 @@ def input_csv():
 
 # Ejemplo de uso
 if __name__ == "__main__":
-    """
     df_control, df_project = input_csv()
     print(df_control.head(10))
     print(f'\n{df_project.head(10)}')
-    """
     print(select_folder())
 
 # %%

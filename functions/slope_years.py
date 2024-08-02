@@ -1,3 +1,6 @@
+from numba import njit
+
+
 def slope_SI(df, dict):
     # Recorrer las claves del diccionario
     keys = list(dict.keys())

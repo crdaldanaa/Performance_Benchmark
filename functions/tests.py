@@ -1,7 +1,8 @@
 import numpy as np
+from numba import njit
 
 
-def sdm_column(df):
+def sdm_column(df, str_covars):
     def calculate_sdm(column):
         grouped = df.groupby('Type')[column]
         means = grouped.mean()
@@ -19,8 +20,8 @@ def sdm_column(df):
 
     sdm_dict = {}
 
-    numeric_columns = df.select_dtypes(include=np.number).columns
-    for column in numeric_columns:
+    covars_cols = df[str_covars]
+    for column in covars_cols:
         sdm_dict[column] = calculate_sdm(column)
 
     max_sdm = max(sdm_dict.values())
@@ -45,7 +46,7 @@ def z_column(df, n):
 
         se = np.sqrt((std_1**2 / n_1) + (std_2**2 / n_2))
 
-        ztest = float(round((mean_1 - mean_2) / se, 2))
+        ztest = float(round(abs((mean_1 - mean_2) / se), 2))
 
         return ztest
 
@@ -57,7 +58,7 @@ def z_column(df, n):
     for column in lastest_columns:
         z_scores[column] = calculate_ztest(column)
 
-    max_ztest = max(z_scores.values())
+    max_ztest = min(z_scores.values())
 
     def final_pb(df, dict):
         def get_value(row, data_dict):
