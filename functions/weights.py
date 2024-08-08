@@ -43,7 +43,10 @@ if __name__ == '__main__':
     response, df_control_plots, df_project_plots, strs_project, dict_project, id_name = check_df(
         df_project_plots, df_control_plots)
 
-    matrix_distances, assigned_plots, df_selected_plots = arrange_plots(
-        df_project_plots, df_control_plots, strs_project, id_name, 1)
+    matrix_distances = distance_mahalanobis_matrix(
+        df_project_plots, df_control_plots, strs_project, id_name)
+
+    assigned_plots, df_selected_plots = arrange_plots(
+        df_project_plots, df_control_plots, matrix_distances, id_name, 1)
 
     print(weights(assigned_plots))

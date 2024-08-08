@@ -18,51 +18,33 @@ def distance_mahalanobis_matrix(df_project, df_control, str_covars, id_name):
     def mahalanobis_distance(x, y, inv_cov_matrix):
         return mahalanobis(x, y, inv_cov_matrix)
 
-    # Crear un DataFrame vacío para almacenar las distancias
-    distances_df = pd.DataFrame(df_project[id_name])
-    # print(f'Esta es la matriz de distancias inicial\n{distances_df}')
+    # Nombre de la columna adicional
+    columna_id = 'Project Plot ID'
 
-    # Inicializar una lista para almacenar las Series de distancias
-    new_cols = []
+    # Extraer los nombres de las columnas desde la primera columna del DataFrame existente
+    column_names = [columna_id] + df_control[id_name].tolist()
 
-    for i, control_plot in df_control.iterrows():
-        control_id = control_plot[id_name]
-        distances = []
-        for j, project_plot in df_project.iterrows():
+    # Crear una lista para almacenar todas las filas de distancias
+    all_distances = []
+
+    # Itera sobre los project plots
+    for i, project_plot in df_project.iterrows():
+        project_id = project_plot[id_name]
+        distances = [project_id]
+        # Calcula las distancias para cada control plot
+        for j, control_plot in df_control.iterrows():
             distance = mahalanobis_distance(
                 project_plot[str_covars].values,
                 control_plot[str_covars].values,
                 inv_cov_matrix
             )
+            distances.append(round(float(distance), 3))
 
-            # print(f'Datos de la matriz {distances}')
-            distances.append(distance)
-            # print(f'Calculando la distancia de Mahalanobis de la Project Plot {control_plot} a la Control Plot {j}')
+        # Añadir la fila de distancias a la lista
+        all_distances.append(distances)
 
-        """
-        # Crear una Serie con las distancias y agregarla a la lista de nuevas columnas
-        distances_series = pd.Series(distances, name=control_id)
-        new_cols.append(distances_series)
-        """
-
-        temp_df = pd.DataFrame({control_id: distances})
-
-        # Usar pd.concat para agregar todas las nuevas columnas al DataFrame distances_df
-        distances_df = pd.concat([distances_df, temp_df], axis=1)
-
-        # Crear una Serie con las distancias y agregarla a la lista de nuevas columnas
-        distances_series = pd.Series(distances, name=control_id)
-        new_cols.append(distances_series)
-
-    # Crear el DataFrame final de distancias usando pd.concat
-    distances_df = pd.concat(new_cols, axis=1)
-
-    # print(distances_df)
-
-    """
-    # Opcional: agregar el índice del DataFrame del proyecto
-    distances_df.index = df_project[id_name]
-    """
+    # Crear el DataFrame final con todas las distancias
+    distances_df = pd.DataFrame(all_distances, columns=column_names)
 
     return distances_df
 
@@ -145,7 +127,7 @@ if __name__ == '__main__':
     from cross_check_df import *
 
     df_project_plots = pd.DataFrame({
-        'ID': [1, 2, 3],
+        'ID': ['C1', 'C2', 'C3'],
         '2010': [4.1, 5.2, 5.0],
         '2015': [4.2, 5.3, 5.1],
         '2020': [4.5, 5.4, 5.3]
@@ -167,4 +149,4 @@ if __name__ == '__main__':
     assigned_plots, df_project = arrange_plots(
         df_project_plots, df_control_plots, matrix_distances, id_name, 4)
 
-    print(assigned_plots)
+    print(matrix_distances)

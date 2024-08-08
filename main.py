@@ -11,7 +11,7 @@ def run():
         matrix_distances_df, path, 'Matrix Distance Mahalanobis')
     save_df.add_df_new_sheet(selected_plots_df, path_excel, 'SI')
     save_df.add_df_new_sheet(weights_df, path_excel, 'Control Weights')
-    save_df.add_df_new_sheet(benchmark_df, path_excel, 'Benchmark')
+    # save_df.add_df_new_sheet(benchmark_df, path_excel, 'Benchmark')
 
 
 if __name__ == '__main__':

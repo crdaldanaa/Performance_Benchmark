@@ -15,6 +15,7 @@ def check_df(df_project, df_control):
                 continue
             elif '_' in header:
                 parts = header.split('_', 1)  # Dividir en dos partes
+                print(parts)
                 year = int('20'+parts[1])
                 header_dict[header] = year
                 covars.append(header)

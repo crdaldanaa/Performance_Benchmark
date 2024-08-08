@@ -29,7 +29,7 @@ def benchmark_software():
         """print(df_project_plots)"""
 
         for i in range(20):
-            print(f'Generando el escenario {i+1} de 20.')
+            print(f'Generando el escenario {i}.')
             np.random.seed(None)
             random.seed(None)
             # print(f'Este es el df original {df_project_plots}')
@@ -59,6 +59,7 @@ def benchmark_software():
 
             matrix_distances = matriz_distances.distance_mahalanobis_matrix(
                 df_sample_plots, df_sample_control_plots, strs_project, id_project)
+            print(matrix_distances)
 
             print(f'Matriz de Distancias Finalizada')
             """
@@ -79,7 +80,7 @@ def benchmark_software():
                     df_selected_plots, strs_project)
 
                 print(
-                    f'Este es el resultado de la prueba sdm en el escenario {i+1}\n{sdm_dict}')
+                    f'Este es el resultado de la prueba sdm en el escenario {i}\n{sdm_dict}')
 
                 df_weights = weights.weights(assigned_plots)
                 df_selected_plots, cols = slope_years.slope_SI(
@@ -88,7 +89,7 @@ def benchmark_software():
                 z_dict, max_val_z, last_cols = tests.z_column(
                     df_selected_plots, cols)
                 print(
-                    f'Este es el resultado de la prueba ztest en el escenario {i+1}\n{z_dict}')
+                    f'Este es el resultado de la prueba ztest en el escenario {i}\n{z_dict}')
 
                 benchmark_df, total_pb = benchmark.performance_benchmark(
                     df_selected_plots, last_cols, z_dict)
@@ -96,7 +97,7 @@ def benchmark_software():
                 time.sleep(60)
 
                 # Filtrar si cumple con las condiciones
-                if max_val_sdm <= 0.25 and max_val_z >= 1.96:
+                if max_val_sdm <= 0.25:
                     count += 1
                     valid_results.append({
                         'df_selected_plots': df_selected_plots,
@@ -110,6 +111,7 @@ def benchmark_software():
                     if total_pb < min_total_pb:
                         min_total_pb = total_pb
                         best_result = {
+                            'matrix_distances': matrix_distances,
                             'df_selected_plots': df_selected_plots,
                             'sdm_dict': sdm_dict,
                             'df_weights': df_weights,
@@ -134,8 +136,8 @@ def benchmark_software():
             print("No se encontraron resultados válidos.")
             return None
 
-        matriz_distances_df = best_result.get(
-            'df_selected_plots', pd.DataFrame())
+        matrix_distances = best_result.get(
+            'matrix_distances', pd.DataFrame())
         selected_plots_df = best_result.get(
             'df_selected_plots', pd.DataFrame())
         sdm_dict = best_result.get('sdm_dict', {})
@@ -145,21 +147,17 @@ def benchmark_software():
         print(f'Se obtuvieron {
               count} escenarios que cumplen con las condiciones')
 
-        return matriz_distances_df, selected_plots_df, sdm_dict, weights_df, benchmark_df
-
     except UnboundLocalError:
         print("")
 
-    """
     except TypeError:
         print("Ingrese un valor válido de parcelas")
-    """
 
-    """
     except ValueError:
         print(f'El número de parcelas seleccionadas ({
               n}) es mayor que el número de parcelas en el dataset Project Plot')
-    """
+
+    return matrix_distances, selected_plots_df, sdm_dict, weights_df, benchmark_df
 
 
 if __name__ == '__main__':
